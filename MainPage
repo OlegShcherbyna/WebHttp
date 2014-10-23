@@ -1,0 +1,60 @@
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.http.*;
+import io.netty.util.CharsetUtil;
+
+public class MainPage {
+
+        public FullHttpResponse checkValue(String value) throws InterruptedException {
+            String url = "";
+
+            if(value.contains("%3C")) {
+                url = value.substring(17, value.length()-3);
+                value = value.substring(0, 9);
+                Request.getInstance().putURLandCountHim(url);
+            }
+
+            if (value.equals("/hello")) {
+                return valueHelloWorld();
+            } else if (value.equals("/status")) {
+                return valueStatus();
+            } else if (value.equals("/redirect")) {
+                return valueRedirect(url);
+            } else {
+                return notFoundValue();
+            }
+        }
+
+        private FullHttpResponse valueHelloWorld() throws InterruptedException {
+            String hello = "<head><font size=\"3\">Hello world!</font></head>";
+            FullHttpResponse value = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.ACCEPTED,
+                    Unpooled.copiedBuffer(hello, CharsetUtil.UTF_8));
+            Thread.sleep(10000);
+
+            return value;
+        }
+
+        private FullHttpResponse valueRedirect(String url) {
+
+            FullHttpResponse value = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.FOUND);
+            value.headers().set(HttpHeaders.Names.LOCATION, url);
+
+            return value;
+        }
+
+        private FullHttpResponse valueStatus() {
+
+            FullHttpResponse value = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.ACCEPTED,
+                    Unpooled.copiedBuffer(Initializer.req.getReport(), CharsetUtil.UTF_8));
+
+            return value;
+        }
+
+        private FullHttpResponse notFoundValue() {
+            String notFound = "<head><tr>Sorry, the page is not available <p> 404 Not Found</tr></head>";
+            DefaultFullHttpResponse value = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.ACCEPTED,
+                    Unpooled.copiedBuffer(notFound, CharsetUtil.UTF_8));
+
+            return value;
+        }
+
+    }
