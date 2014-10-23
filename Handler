@@ -1,0 +1,81 @@
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpRequest;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
+public class Handler extends SimpleChannelInboundHandler<Object> {
+
+        private String uri;
+        private String src_ip;
+        private int send_byte;
+        private int received_byte;
+        private double speed;
+
+        Handler(String src_ip) {
+            this.src_ip = src_ip;
+        }
+
+
+        @Override
+        public void channelActive(ChannelHandlerContext ctx) throws Exception {
+            speed = System.currentTimeMillis();
+            Initializer.req.setCount();
+            Initializer.req.setNumberActive();
+            Request.getInstance().setFirstIP(src_ip);
+        }
+
+
+        @Override
+        public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+
+            received_byte += msg.toString().length();
+
+            if(!(msg instanceof HttpRequest))
+                return;
+
+            uri = ((HttpRequest) msg).getUri();
+            FullHttpResponse response = new MainPage().checkValue((uri));
+
+            if(uri.contains("%3C")) {
+                this.uri = uri.substring(17, uri.length()-3);
+            }
+            Initializer.req.setCountUniqueConnection(uri);
+
+            if(response != null) {
+                this.send_byte = response.content().writerIndex();
+                ctx.write(response).addListener(ChannelFutureListener.CLOSE);
+            }
+        }
+
+    @Override
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext, Object o) throws Exception {
+
+    }
+
+    @Override
+        public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+
+            speed = (System.currentTimeMillis() - speed) / 1000;
+            speed = (received_byte + send_byte) / speed;
+            speed = new BigDecimal(speed).setScale(2, RoundingMode.UP).doubleValue();
+
+            Log cip = new Log(src_ip, uri, send_byte, received_byte, speed);
+            Initializer.req.addConnection(cip);
+
+            Initializer.req.dropNumberActive();
+
+            ctx.flush();
+        }
+
+
+        @Override
+        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
+                throws Exception {
+            cause.printStackTrace();
+            ctx.close();
+        }
+    }
