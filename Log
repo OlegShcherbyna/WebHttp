@@ -1,0 +1,54 @@
+import java.util.Date;
+
+public class Log {
+    String src_ip = "";
+    String uri = "";
+    private Date date = new Date();
+    int send_byte = 0;
+    int received_byte = 0;
+    double speed = 0;
+
+    public  Log(String src_ip, String uri, int send_byte, int received_byte, double speed){
+        this.src_ip = src_ip;
+        this.uri = uri;
+        this.date = new Date();
+        this.send_byte = send_byte;
+        this.received_byte = received_byte;
+        this.speed = speed;
+    }
+
+    public String toString() {
+        return "" + src_ip
+                + " " + uri
+                + " " + date
+                + " " + send_byte
+                + " " + received_byte
+                + " " + speed + "<br>";
+    }
+
+
+
+    public String getSrc_ip() {
+        return src_ip + "";
+    }
+
+    public String getUri() {
+        return uri + "";
+    }
+
+    public String getDate() {
+        return date + "";
+    }
+
+    public String getSend_byte() {
+        return send_byte + "";
+    }
+
+    public String getReceived_byte() {
+        return received_byte + "";
+    }
+
+    public String getSpeed() {
+        return speed + "";
+    }
+}
